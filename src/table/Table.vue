@@ -24,30 +24,110 @@
           ref="multipleTable"
           :header-cell-style="{'text-align':'center'}"
           :cell-style="{'text-align':'center'}"
-          @selection-change="handleSelectionChange">
+          @selection-change="handleSelectionChange"
+          @cell-dblclick="editCell"
+          @cell-click="cellClick">
         <el-table-column type="selection"></el-table-column>
         <el-table-column prop="id" v-if="false"></el-table-column>
         <el-table-column prop="date" label="日期" sortable></el-table-column>
-        <el-table-column prop="name" label="姓名" sortable>
-
+        <el-table-column prop="name" label="姓名" sortable></el-table-column>
+        <el-table-column prop="money" label="金额" sortable>
+          <template v-slot="scope">
+            <div v-if="row===scope.row.id && column === scope.column.id">
+              <el-input v-model="scope.row.money" @blur="updateData"/>
+            </div>
+            <div v-else>
+              {{ scope.row.money }}
+            </div>
+          </template>
         </el-table-column>
-        <el-table-column prop="money" label="金额" sortable></el-table-column>
         <el-table-column label="春">
-          <el-table-column prop="spring-area" label="面积">
+          <el-table-column prop="springArea" label="面积">
+            <template v-slot="scope">
+              <div v-if="row===scope.row.id && column === scope.column.id">
+                <el-input v-model="scope.row.springArea" @blur="updateData"/>
+              </div>
+              <div v-else>
+                {{ scope.row.springArea }}
+              </div>
+            </template>
           </el-table-column>
-          <el-table-column prop="spring-money" label="金额"/>
+          <el-table-column prop="springMoney" label="金额">
+            <template v-slot="scope">
+              <div v-if="row===scope.row.id && column === scope.column.id">
+                <el-input v-model="scope.row.springMoney" @blur="updateData"/>
+              </div>
+              <div v-else>
+                {{ scope.row.springMoney }}
+              </div>
+            </template>
+          </el-table-column>
         </el-table-column>
         <el-table-column label="夏">
-          <el-table-column prop="summer-area" label="面积"/>
-          <el-table-column prop="summer-money" label="金额"/>
+          <el-table-column prop="summerArea" label="面积">
+            <template v-slot="scope">
+              <div v-if="row===scope.row.id && column === scope.column.id">
+                <el-input v-model="scope.row.summerArea" @blur="updateData"/>
+              </div>
+              <div v-else>
+                {{ scope.row.summerArea }}
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column prop="summerMoney" label="金额">
+            <template v-slot="scope">
+              <div v-if="row===scope.row.id && column === scope.column.id">
+                <el-input v-model="scope.row.summerMoney" @blur="updateData"/>
+              </div>
+              <div v-else>
+                {{ scope.row.summerMoney }}
+              </div>
+            </template>
+          </el-table-column>
         </el-table-column>
         <el-table-column label="秋">
-          <el-table-column prop="autumn-area" label="面积"/>
-          <el-table-column prop="autumn-money" label="金额"/>
+          <el-table-column prop="autumnArea" label="面积">
+            <template v-slot="scope">
+              <div v-if="row===scope.row.id && column === scope.column.id">
+                <el-input v-model="scope.row.summerMoney" @blur="updateData"/>
+              </div>
+              <div v-else>
+                {{ scope.row.summerMoney }}
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column prop="autumnMoney" label="金额">
+            <template v-slot="scope">
+              <div v-if="row===scope.row.id && column === scope.column.id">
+                <el-input v-model="scope.row.autumnMoney" @blur="updateData"/>
+              </div>
+              <div v-else>
+                {{ scope.row.autumnMoney }}
+              </div>
+            </template>
+          </el-table-column>
         </el-table-column>
         <el-table-column label="冬">
-          <el-table-column prop="winter-area" label="面积"/>
-          <el-table-column prop="winter-money" label="金额"/>
+          <el-table-column prop="winterArea" label="面积">
+            <template v-slot="scope">
+              <div v-if="row===scope.row.id && column === scope.column.id">
+                <el-input v-model="scope.row.winterArea" @blur="updateData"/>
+              </div>
+              <div v-else>
+                {{ scope.row.winterArea }}
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column prop="winterMoney" label="金额">
+            <template v-slot="scope">
+              <div v-if="row===scope.row.id && column === scope.column.id">
+                <el-input v-model="scope.row.winterMoney" @blur="updateData"/>
+              </div>
+              <div v-else>
+                {{ scope.row.winterMoney }}
+              </div>
+            </template>
+          </el-table-column>
         </el-table-column>
         <el-table-column fixed="right" label="操作">
           <template v-slot="scope">
@@ -127,6 +207,93 @@
 
 import {FarmVo} from "@/object/FarmVo";
 
+const data = [
+  {
+    id: '1',
+    date: '2023-03-06',
+    name: 'Sally',
+    money: 500
+  },
+  {
+    id: '2',
+    date: '2023-03-06',
+    name: 'Sally',
+    money: 500
+  },
+  {
+    id: '3',
+    date: '2023-03-06',
+    name: 'Sally',
+    money: 500
+  },
+  {
+    id: '4',
+    date: '2023-03-06',
+    name: 'Sally',
+    money: 500
+  },
+  {
+    id: '5',
+    date: '2023-03-06',
+    name: 'Sally',
+    money: 500
+  },
+  {
+    id: '6',
+    date: '2023-03-06',
+    name: 'Sally',
+    money: 500
+  },
+  {
+    id: '7',
+    date: '2023-03-06',
+    name: 'Sally',
+    money: 500
+  },
+  {
+    id: '8',
+    date: '2023-03-06',
+    name: 'Sally',
+    money: 500
+  },
+  {
+    id: '9',
+    date: '2023-03-06',
+    name: 'Sally',
+    money: 500
+  },
+  {
+    id: '10',
+    date: '2023-03-06',
+    name: 'Sally',
+    money: 500
+  },
+  {
+    id: '11',
+    date: '2023-03-06',
+    name: 'Sally',
+    money: 500
+  },
+  {
+    id: '12',
+    date: '2023-03-06',
+    name: 'Sally',
+    money: 500
+  },
+  {
+    id: '13',
+    date: '2023-03-06',
+    name: 'Sally',
+    money: 500
+  },
+  {
+    id: '14',
+    date: '2023-03-06',
+    name: 'Sally',
+    money: 500
+  }
+];
+
 export default {
 
   // eslint-disable-next-line vue/multi-word-component-names
@@ -138,93 +305,11 @@ export default {
       dialogFormVisible: false,
       date: '',
       input: '',
-      tableData: [
-        {
-          id: '1',
-          date: '2023-03-06',
-          name: 'Sally',
-          money: 500
-        },
-        {
-          id: '2',
-          date: '2023-03-06',
-          name: 'Sally',
-          money: 500
-        },
-        {
-          id: '3',
-          date: '2023-03-06',
-          name: 'Sally',
-          money: 500
-        },
-        {
-          id: '4',
-          date: '2023-03-06',
-          name: 'Sally',
-          money: 500
-        },
-        {
-          id: '5',
-          date: '2023-03-06',
-          name: 'Sally',
-          money: 500
-        },
-        {
-          id: '6',
-          date: '2023-03-06',
-          name: 'Sally',
-          money: 500
-        },
-        {
-          id: '7',
-          date: '2023-03-06',
-          name: 'Sally',
-          money: 500
-        },
-        {
-          id: '8',
-          date: '2023-03-06',
-          name: 'Sally',
-          money: 500
-        },
-        {
-          id: '9',
-          date: '2023-03-06',
-          name: 'Sally',
-          money: 500
-        },
-        {
-          id: '10',
-          date: '2023-03-06',
-          name: 'Sally',
-          money: 500
-        },
-        {
-          id: '11',
-          date: '2023-03-06',
-          name: 'Sally',
-          money: 500
-        },
-        {
-          id: '12',
-          date: '2023-03-06',
-          name: 'Sally',
-          money: 500
-        },
-        {
-          id: '13',
-          date: '2023-03-06',
-          name: 'Sally',
-          money: 500
-        },
-        {
-          id: '14',
-          date: '2023-03-06',
-          name: 'Sally',
-          money: 500
-        }
-      ],
-      form: new FarmVo()
+      tableData: data,
+      form: new FarmVo(),
+      row: '',
+      column: '',
+      tmpRow: ''
     }
   },
   methods: {
@@ -288,6 +373,17 @@ export default {
           message: '已取消删除'
         })
       })
+    },
+    editCell(row, column) {
+      this.row = row.id;
+      this.column = column.id;
+      this.tmpRow = row
+    },
+    updateData() {
+      this.tableData = data;
+    },
+    cellClick() {
+
     }
   }
 }
