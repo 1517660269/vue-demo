@@ -8,10 +8,10 @@
                           end-placeholder="结束日期"/>
         </el-form-item>
         <el-form-item label="姓名">
-          <el-input v-model="input" placeholder="请输入姓名" prefix-icon="el-icon-search" style="width: 200px"/>
+          <el-input v-model="name" placeholder="请输入姓名" prefix-icon="el-icon-search" style="width: 200px"/>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" plain>查询</el-button>
+          <el-button type="primary" plain @click="search">查询</el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -20,16 +20,16 @@
       <el-button type="danger" @click="delAll">删除全部</el-button>
     </div>
     <div class="table">
-      <el-table :data="tableData" style="width: 100%" max-height="450"
-          ref="multipleTable"
-          :header-cell-style="{'text-align':'center'}"
-          :cell-style="{'text-align':'center'}"
-          @selection-change="handleSelectionChange"
-          @cell-dblclick="editCell"
-          @cell-click="cellClick">
+      <el-table :data="page.list" style="width: 100%" max-height="450"
+                ref="multipleTable"
+                :header-cell-style="{'text-align':'center'}"
+                :cell-style="{'text-align':'center'}"
+                @selection-change="handleSelectionChange"
+                @cell-dblclick="editCell"
+                @cell-click="cellClick">
         <el-table-column type="selection"></el-table-column>
         <el-table-column prop="id" v-if="false"></el-table-column>
-        <el-table-column prop="date" label="日期" sortable></el-table-column>
+        <el-table-column prop="date" label="日期" sortable :formatter="formatterTime"></el-table-column>
         <el-table-column prop="name" label="姓名" sortable></el-table-column>
         <el-table-column prop="money" label="金额" sortable>
           <template v-slot="scope">
@@ -108,23 +108,23 @@
           </el-table-column>
         </el-table-column>
         <el-table-column label="冬">
-          <el-table-column prop="winterArea" label="面积">
+          <el-table-column prop="winnerArea" label="面积">
             <template v-slot="scope">
               <div v-if="row===scope.row.id && column === scope.column.id">
-                <el-input v-model="scope.row.winterArea" @blur="updateData"/>
+                <el-input v-model="scope.row.winnerArea" @blur="updateData"/>
               </div>
               <div v-else>
-                {{ scope.row.winterArea }}
+                {{ scope.row.winnerArea }}
               </div>
             </template>
           </el-table-column>
-          <el-table-column prop="winterMoney" label="金额">
+          <el-table-column prop="winnerMoney" label="金额">
             <template v-slot="scope">
               <div v-if="row===scope.row.id && column === scope.column.id">
-                <el-input v-model="scope.row.winterMoney" @blur="updateData"/>
+                <el-input v-model="scope.row.winnerMoney" @blur="updateData"/>
               </div>
               <div v-else>
-                {{ scope.row.winterMoney }}
+                {{ scope.row.winnerMoney }}
               </div>
             </template>
           </el-table-column>
@@ -138,9 +138,12 @@
       </el-table>
     </div>
     <div class="block">
-      <el-pagination background
-          layout="prev, pager, next"
-          :total="50">
+      <el-pagination background @size-change="handleSizeChange" @current-change="handleCurrentChange"
+                     layout="total, prev, pager, next, sizes"
+                     :page-sizes="[10, 20, 30, 40]"
+                     :current-page.sync="page.currentPage"
+                     :page-size="page.pageSize"
+                     :total="page.totalCount">
       </el-pagination>
     </div>
     <div>
@@ -206,93 +209,7 @@
 <script>
 
 import {FarmVo} from "@/object/FarmVo";
-
-const data = [
-  {
-    id: '1',
-    date: '2023-03-06',
-    name: 'Sally',
-    money: 500
-  },
-  {
-    id: '2',
-    date: '2023-03-06',
-    name: 'Sally',
-    money: 500
-  },
-  {
-    id: '3',
-    date: '2023-03-06',
-    name: 'Sally',
-    money: 500
-  },
-  {
-    id: '4',
-    date: '2023-03-06',
-    name: 'Sally',
-    money: 500
-  },
-  {
-    id: '5',
-    date: '2023-03-06',
-    name: 'Sally',
-    money: 500
-  },
-  {
-    id: '6',
-    date: '2023-03-06',
-    name: 'Sally',
-    money: 500
-  },
-  {
-    id: '7',
-    date: '2023-03-06',
-    name: 'Sally',
-    money: 500
-  },
-  {
-    id: '8',
-    date: '2023-03-06',
-    name: 'Sally',
-    money: 500
-  },
-  {
-    id: '9',
-    date: '2023-03-06',
-    name: 'Sally',
-    money: 500
-  },
-  {
-    id: '10',
-    date: '2023-03-06',
-    name: 'Sally',
-    money: 500
-  },
-  {
-    id: '11',
-    date: '2023-03-06',
-    name: 'Sally',
-    money: 500
-  },
-  {
-    id: '12',
-    date: '2023-03-06',
-    name: 'Sally',
-    money: 500
-  },
-  {
-    id: '13',
-    date: '2023-03-06',
-    name: 'Sally',
-    money: 500
-  },
-  {
-    id: '14',
-    date: '2023-03-06',
-    name: 'Sally',
-    money: 500
-  }
-];
+import {edit, getTableList} from "@/api/axios";
 
 export default {
 
@@ -304,15 +221,44 @@ export default {
       delIds: [],
       dialogFormVisible: false,
       date: '',
-      input: '',
-      tableData: data,
+      name: '',
       form: new FarmVo(),
       row: '',
       column: '',
-      tmpRow: ''
+      tmpRow: '',
+      page: {
+        currentPage: 1,
+        pageSize: 10,
+        totalPage: 0,
+        totalCount: 0,
+        list: []
+      }
     }
   },
   methods: {
+    getTableList() {
+      let startTime = null;
+      let endTime = null;
+      if (this.date != null && this.date.length > 1) {
+        startTime = date2String(this.date[0]);
+        endTime = date2String(this.date[1]);
+      }
+      const params = {
+        page: this.page.currentPage - 1,
+        pageSize: this.page.pageSize,
+        name: this.name,
+        startTime: startTime,
+        endTime: endTime
+      }
+      getTableList(params).then(res => {
+        this.page.list = res.data.content;
+        this.page.totalCount = res.data.numberOfElements;
+        this.page.totalPage = res.data.totalPages;
+      })
+    },
+    search() {
+      this.getTableList();
+    },
     add() {
       this.dialogFormVisible = true;
     },
@@ -332,17 +278,24 @@ export default {
     },
     submit() {
       this.dialogFormVisible = false;
-      if (this.form.id === null || this.form.id === '') {
-        this.$message({
-          message: '添加成功',
-          type: 'success'
-        })
-      } else {
-        this.$message({
-          message: '修改成功',
-          type: 'success'
-        })
-      }
+      this.form.date = date2String(this.form.date)
+      const id = this.form.id;
+      edit(this.form).then(res => {
+        if (res.status === 200) {
+          if (id === null || id === '') {
+            this.$message({
+              message: '添加成功',
+              type: 'success'
+            })
+          } else {
+            this.$message({
+              message: '修改成功',
+              type: 'success'
+            })
+          }
+        }
+        this.getTableList();
+      })
     },
     handleSelectionChange(val) {
       val.forEach(item => {
@@ -354,7 +307,7 @@ export default {
     },
     update(row) {
       this.dialogFormVisible = true;
-      this.form = row;
+      this.form = Object.assign({}, row);
     },
     del(row) {
       this.$confirm('此操作将删除当前数据，是否继续', '提示', {
@@ -380,11 +333,47 @@ export default {
       this.tmpRow = row
     },
     updateData() {
-      this.tableData = data;
+      //this.tableData = data;
     },
     cellClick() {
 
+    },
+    handleSizeChange(val) {
+      this.page = val;
+    },
+    handleCurrentChange(val) {
+      this.pageSize = val;
+    },
+    formatterTime(row, column) {
+      let date = row[column.property];
+      if (!isNaN(Date.parse(date))) {
+        return /\d{4}-\d{1,2}-\d{1,2}/g.exec(date);
+      } else {
+        return date
+      }
     }
+  },
+  created() {
+    this.getTableList()
+  }
+}
+
+function date2String(date) {
+  if (date instanceof String) {
+    return date;
+  } else if (date instanceof Object) {
+    const year = date.getFullYear();
+    let month = (date.getMonth() + 1).toString();
+    let day = (date.getDate()).toString();
+    if (month.length === 1) {
+      month = "0" + month;
+    }
+    if (day.length === 1) {
+      day = "0" + day;
+    }
+    return year + "-" + month + "-" + day;
+  } else {
+    return date2String(new Date())
   }
 }
 </script>

@@ -2,6 +2,7 @@
 export class FarmVo {
     constructor() {
         this.id = null;
+        this.date = null;
         this.name = null;
         this.money = 0;
         this.springArea = 0;

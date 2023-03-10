@@ -32,6 +32,7 @@ export default {
   methods: {
     logout() {
       this.$axios.post('/logout').then(res => {
+        console.log(res)
         this.$store.commit('resetState')
         this.$router.push({path: '/login'})
       })
