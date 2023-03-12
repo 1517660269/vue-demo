@@ -1,5 +1,6 @@
 <template>
   <div class="app">
+    <!-- 查询搜索   -->
     <div class="search-form" style="margin: 10px">
       <el-form :inline="true">
         <el-form-item label="日期">
@@ -8,17 +9,19 @@
                           end-placeholder="结束日期"/>
         </el-form-item>
         <el-form-item label="姓名">
-          <el-input v-model="name" placeholder="请输入姓名" prefix-icon="el-icon-search" style="width: 200px"/>
+          <el-input v-model="name" placeholder="请输入姓名" clearable prefix-icon="el-icon-search" style="width: 200px"/>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" plain @click="search">查询</el-button>
         </el-form-item>
       </el-form>
     </div>
+    <!-- 操作按钮   -->
     <div class="">
-      <el-button type="primary" @click="add">添加</el-button>
+      <el-button type="primary" @click="showForm">添加</el-button>
       <el-button type="danger" @click="delAll">删除全部</el-button>
     </div>
+    <!--  表格  -->
     <div class="table">
       <el-table :data="page.list" style="width: 100%" max-height="450"
                 ref="multipleTable"
@@ -89,10 +92,10 @@
           <el-table-column prop="autumnArea" label="面积">
             <template v-slot="scope">
               <div v-if="row===scope.row.id && column === scope.column.id">
-                <el-input v-model="scope.row.summerMoney" @blur="updateData"/>
+                <el-input v-model="scope.row.autumnArea" @blur="updateData"/>
               </div>
               <div v-else>
-                {{ scope.row.summerMoney }}
+                {{ scope.row.autumnArea }}
               </div>
             </template>
           </el-table-column>
@@ -137,6 +140,7 @@
         </el-table-column>
       </el-table>
     </div>
+    <!--  分页  -->
     <div class="block">
       <el-pagination background @size-change="handleSizeChange" @current-change="handleCurrentChange"
                      layout="total, prev, pager, next, sizes"
@@ -146,6 +150,7 @@
                      :total="page.totalCount">
       </el-pagination>
     </div>
+    <!--  添加修改表单  -->
     <div>
       <el-dialog title="添加" :visible.sync="dialogFormVisible" @close="closedForm">
         <div class="el-dialog-dive">
@@ -209,7 +214,7 @@
 <script>
 
 import {FarmVo} from "@/object/FarmVo";
-import {edit, getTableList} from "@/api/axios";
+import {del, edit, getTableList} from "@/api/axios";
 
 export default {
 
@@ -236,6 +241,7 @@ export default {
     }
   },
   methods: {
+    // 查询列表
     getTableList() {
       let startTime = null;
       let endTime = null;
@@ -256,12 +262,15 @@ export default {
         this.page.totalPage = res.data.totalPages;
       })
     },
+    // 搜索
     search() {
       this.getTableList();
     },
-    add() {
+    // 展示添加表单
+    showForm() {
       this.dialogFormVisible = true;
     },
+    // 关闭表单
     closedForm() {
       // 未生效，因为 dialog 懒加载，通过表格中的编辑按钮打开dialog时，传过来了父组件行数据。
       // 即初始化时数据并不是空的，而resetFields() 函数重置时，初始化的值是啥就是啥。
@@ -269,13 +278,21 @@ export default {
       //this.$refs.addForm.resetFields();
       this.form = new FarmVo();
     },
+    // 删除所有数据
     delAll() {
-      this.$message({
-        message: this.delIds
+      del(this.delIds).then(res => {
+        if (res.status === 200) {
+          this.$message({
+            type: 'success',
+            message: '删除成功'
+          })
+        }
       })
       this.delIds = [];
       this.$refs.multipleTable.clearSelection();
+      this.getTableList();
     },
+    // 提交表单
     submit() {
       this.dialogFormVisible = false;
       this.form.date = date2String(this.form.date)
@@ -297,6 +314,7 @@ export default {
         this.getTableList();
       })
     },
+    // 复选框选中
     handleSelectionChange(val) {
       val.forEach(item => {
         const id = item.id;
@@ -305,20 +323,31 @@ export default {
         }
       })
     },
+    // 编辑渲染数据
     update(row) {
       this.dialogFormVisible = true;
       this.form = Object.assign({}, row);
     },
+    // 删除单条数据
     del(row) {
       this.$confirm('此操作将删除当前数据，是否继续', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消'
       }).then(() => {
-        // 调用接口
-        const id = row.id;
-        this.$message({
-          type: 'success',
-          message: '删除' + id + '成功'
+        this.delIds.push(row.id);
+        del(this.delIds).then(res => {
+          let message = "";
+          if (res.status === 200) {
+            message = '删除成功';
+          } else {
+            message = '删除失败';
+          }
+          this.$message({
+            type: 'success',
+            message: message
+          })
+          this.getTableList();
+          this.delIds = [];
         })
       }).catch(() => {
         this.$message({
@@ -327,23 +356,42 @@ export default {
         })
       })
     },
+    // 双击单元格
     editCell(row, column) {
       this.row = row.id;
       this.column = column.id;
       this.tmpRow = row
     },
-    updateData() {
+    // 失去焦点事件
+    updateData(row, event, column) {
       //this.tableData = data;
+      edit(this.tmpRow).then(res => {
+        if (res.status === 200) {
+          this.$message({
+            type: 'success',
+            message: '修改成功'
+          })
+        }
+      })
+      this.row = null;
+      this.column = null;
+      this.tmpRow = null;
     },
+    // 单击单元格
     cellClick() {
 
     },
+    // 切换每页显示条数
     handleSizeChange(val) {
-      this.page = val;
+      this.page.pageSize = val;
+      this.getTableList();
     },
+    // 切换当前页
     handleCurrentChange(val) {
-      this.pageSize = val;
+      this.page.currentPage = val;
+      this.getTableList();
     },
+    // 格式化日期
     formatterTime(row, column) {
       let date = row[column.property];
       if (!isNaN(Date.parse(date))) {
